@@ -32,7 +32,7 @@ Now when you apply a function to this value, you’ll get different results **de
 
 ![](http://adit.io/imgs/functors/context.png)
 
-In Java, instead of Maybe, we have the `Optional<T>` class which
+> In Java, instead of Maybe, we have the `Optional<T>` class which
 models the absence of value `T`. The following table maps Haskell definitions to Java classes
 
 | Haskell    | Java              |
@@ -74,7 +74,7 @@ Functor is an Abstract Base Class (typeclass in Haskell). Here’s the definitio
 
 ![](http://adit.io/imgs/functors/functor_def.png)
 
-In Java it could be a functional interface:
+> In Java it could be a functional interface:
 ```java
 @FunctionalInterface
 public interface Functor<T> {
@@ -137,7 +137,7 @@ Here’s another example: what happens when you apply a function to a list?
 
 ![](http://adit.io/imgs/functors/fmap_list.png)
 
-In Java with Stream API:
+> In Java with Stream API:
 ```java
 jshell> Stream.of(2,4,6).map(add3).toList();
 $15 ==> [5, 7, 9]
@@ -177,7 +177,7 @@ Yeah. Let that sink in. Applicatives don’t kid around. Applicative knows how t
 
 ![](http://adit.io/imgs/functors/applicative_just.png)
 
-Java's Optional is not applicative but we can write aplicative function for it:
+> Java's Optional is not applicative but we can write aplicative function for it:
 
 ```java
   <T, R> Optional<R> applicative(Optional<Function<T, R>> func, Optional<T> value) {
@@ -201,7 +201,7 @@ Using `<*>` in Haskell can lead to some interesting situations.
 
 ![](http://adit.io/imgs/functors/applicative_list.png)
 
-In Java we do not have such operator `<*>`, but we can achive the same result in the following way:
+> In Java we do not have such operator `<*>`, but we can achive the same result in the following way:
 
 ```java
 jshell> Stream.of(mult2, add3).flatMap(f -> Stream.of(1,2,3).map(f)).toList();
@@ -214,7 +214,7 @@ Here’s something you can do with Applicatives that you can’t do with Functor
 
 And hey! There’s a method called `lift_a2` that does the same thing:
 
-Java can't handle any number of parameters in aplicative calls, but anyway we can create
+> Java can't handle any number of parameters in aplicative calls, but anyway we can create
 `lift_a2` method:
 
 ```java
@@ -222,7 +222,7 @@ Java can't handle any number of parameters in aplicative calls, but anyway we ca
     return optA.flatMap(a -> optB.flatMap(b -> Optional.of(bifunc.apply(a, b))));
   }
 ```
-Let's test it
+> Let's test it
 
 ```
 jshell> lift_a2(just2, Optional.of(3), (x, y) -> x * y);
@@ -328,7 +328,7 @@ You can also chain these calls:
 jshell> Optional.of(20).flatMap(half).flatMap(half).flatMap(half);
 $50 ==> Optional.empty
 ```
-Cool stuff! So now we know that Optional is a Functor and a Monad. Optional is not Applicative itself, but we can provide required applicative functions if needed.
+Cool stuff! So now we know that Optional is a Functor and a Monad. Optional is not Applicative itself, but we can provide applicative functions if needed.
 
 ## IO Monad
 
@@ -336,39 +336,63 @@ Now let’s mosey on over to another example: the `IO` monad:
 
 ![](http://adit.io/imgs/functors/io.png)
 
-Specifically three functions. `get_line` (`getLine` in Haskell) takes no arguments and gets user input:
+> Java does not have IO monad in it's standard library. So for the sake of this translation I will use my own minimal IO monad implementation.
+
+```java
+public interface IO<T> {
+
+  T run();
+  
+  default <R> IO<R> flatMap(Function<T, IO<R>> mapper) {
+    return () -> mapper.apply(run()).run();
+  }
+}
+```
+> Simply speaking it is just Java's `Supplier<T>` interface with defined `flatMap` method.
+
+Specifically three functions. `getLine` takes no arguments and gets user input:
 
 ![](http://adit.io/imgs/functors/getLine.png)
 
-```python
-def get_line() -> IO:
-    return Get(lambda s: IO(s))
+```java
+  IO<String> getLine() {
+    return () -> "read line";  //skipping real reading from console
+  }
 ```
 
-`read_file` (`readFile` in Haskell) takes a string (a filename) and returns that file’s contents:
+`readFile` (`readFile` in Haskell) takes a string (a filename) and returns that file’s contents:
 
 ![](http://adit.io/imgs/functors/readFile.png)
 
-```python
-def read_file(filename) -> IO:
-    return ReadFile(filename, lambda s: IO(s))
+```java
+  IO<String> readFile(String fileName) {
+    return () -> "file content"; //skipping real file reading
+  }
 ```
 
-`put_line` (`putStrLn` in Haskell) takes a string and prints it:
+`printLine` (`putStrLn` in Haskell) takes a string and prints it:
 
 ![](http://adit.io/imgs/functors/putStrLn.png)
 
-```python
-def put_line(string) -> IO:
-    return Put(string, IO(()))
+```java 
+  IO<Void> printLine(String text) {
+    return () -> {
+      System.out.println(text);
+      return null;
+    };
+  }
 ```
 
-All three functions take a regular value (or no value) and return a wrapped value. We can chain all of these using `|`!
+All three functions take a regular value (or no value) and return a wrapped value. We can chain all of these using `flatMap`!
 
 ![](http://adit.io/imgs/functors/monad_io.png)
 
-```python
-get_line() | read_file | put_line
+```
+   var io = getLine()
+    .flatMap(s -> readFile(s))
+    .flatMap(s -> printLine(s));
+    
+    io.run();
 ```
 
 Aw yeah! Front row seats to the monad show!
@@ -382,13 +406,7 @@ foo = do
     putStrLn contents
 ```
 
-> Python does not have a do notation, so we have to write things a bit differently:
-
-```python
-foo = get_line() | (lambda filename:
-      read_file(filename) | (lambda contents:
-      put_line(contents)))
-```
+> Java does not have a `do` notation
 
 # Conclusion
 
