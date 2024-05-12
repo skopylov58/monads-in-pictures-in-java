@@ -75,6 +75,7 @@ Functor is an Abstract Base Class (typeclass in Haskell). Here’s the definitio
 ![](http://adit.io/imgs/functors/functor_def.png)
 
 > In Java it could be a functional interface:
+
 ```java
 @FunctionalInterface
 public interface Functor<T> {
@@ -138,6 +139,7 @@ Here’s another example: what happens when you apply a function to a list?
 ![](http://adit.io/imgs/functors/fmap_list.png)
 
 > In Java with Stream API:
+
 ```java
 jshell> Stream.of(2,4,6).map(add3).toList();
 $15 ==> [5, 7, 9]
@@ -406,7 +408,7 @@ foo = do
     putStrLn contents
 ```
 
-> Java does not have a `do` notation
+> Java does not have a `do` notation, alas.
 
 # Conclusion
 
@@ -414,6 +416,7 @@ foo = do
 2. An applicative is a data type that implements the `Applicative` abstract base class.
 3. A monad is a data type that implements the `Monad` abstract base class.
 4. A `Maybe` implements all three, so it is a functor, an applicative, and a monad.
+5. Java's `Optional<T>` implements two of them, `Functor` and `Monad`.
 
 What is the difference between the three?
 
