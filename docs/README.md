@@ -49,51 +49,6 @@ jshell> var nothing = Optional.<Integer>empty();
 nothing ==> Optional.empty
 ```
 
-<details>
-
-  <summary>We can implement Maybe in Java by own</summary>
-
-```java
-sealed interface Maybe<T> {
-
-  default <R> Maybe<R> map(Function<T, R> mapper) {
-    if (this instanceof Just<T> just) {
-      return Maybe.just(mapper.apply(just.t));
-    } else {
-      return Maybe.nothing();
-    }
-  }
-
-  default <R> Maybe<R> flatMap(Function<T, Maybe<R>> mapper) {
-    if (this instanceof Just<T> just) {
-      return mapper.apply(just.t);
-    } else {
-      return Maybe.nothing();
-    }
-  }
-  
-  static <T> Maybe<T> just(T t) {
-    return new Just<>(t);
-  }
-
-  @SuppressWarnings("unchecked")
-  static <T> Maybe<T> nothing() {
-    return (Maybe<T>) Nothing.INSTANCE;
-  }
-
-  record Just<T>(T t) implements Maybe<T> {
-  }
-
-  final class Nothing<T> implements Maybe<T> {
-    static final Nothing<?> INSTANCE = new Nothing<>();
-  }
-}
-```
-
-</details>
-
-<br>
-
 In a second we’ll see how function application is different when something is a Just a versus a Nothing. First let’s talk about Functors!
 
 # Functors
