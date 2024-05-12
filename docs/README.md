@@ -1,4 +1,10 @@
 > This is a translation of [Functors, Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html) from Haskell into Java. Hopefully this should make the article much easier to understand for people who don't know Haskell.
+I will be using java's jshell to demonstrate code snippets:
+```shell
+$ jshell
+|  Welcome to JShell -- Version 17.0.10
+|  For an introduction type: /help intro
+```
 
 Here’s a simple value:
 
@@ -10,10 +16,6 @@ And we know how to apply a function to this value:
 
 In Java shell it will look like this:
 ```shell
-$ jshell
-|  Welcome to JShell -- Version 17.0.10
-|  For an introduction type: /help intro
-
 jshell> Function<Integer, Integer> add3 = x -> x + 3;
 add3 ==> $Lambda$20/0x0000023581009a00@28c97a5
 
@@ -30,8 +32,14 @@ Now when you apply a function to this value, you’ll get different results **de
 
 ![](http://adit.io/imgs/functors/context.png)
 
-In Java, instead of Maybe, we have the `Optional<T>` class which is quite similar to Maybe.
-`Optional.of(2)` corresponds to `Just(2)`, `Optional.empty()` is equivalent to `Nothing()`
+In Java, instead of Maybe, we have the `Optional<T>` class which
+models the absence of value `T`. The following table maps Haskell definitions to Java classes
+
+| Haskell    | Java              |
+| ---------- | ----------------  |
+| `Maybe`    | `Optional<T>`     | 
+| `Just 2`   | `Optional.of(2)`  |
+| `Nothing`  | `Optional.empty()`|
 
 ```shell
 jshell> var just2 = Optional.of(2)
@@ -49,7 +57,7 @@ When a value is wrapped in a context, you can’t apply a normal function to it:
 
 ![](http://adit.io/imgs/functors/no_fmap_ouch.png)
 
-This is where `map` comes in (`fmap` in Haskell). `map` is from the street, `map` is hip to contexts. `map` knows how to apply functions to values that are wrapped in a context. For example, suppose you want to apply `(+3)` to `Just 2`. Use `map`:
+This is where `map` comes in (`fmap` in Haskell). `map` is from the street, `map` is hip to contexts. `map` knows how to apply functions to values that are wrapped in a context. For example, suppose you want to apply `add3` to `just2`. Use `map`:
 
 ```shell
 jshell> var just5 = just2.map(add3);
@@ -66,7 +74,7 @@ Functor is an Abstract Base Class (typeclass in Haskell). Here’s the definitio
 
 ![](http://adit.io/imgs/functors/functor_def.png)
 
-In Java:
+In Java it could be a functional interface:
 ```java
 @FunctionalInterface
 public interface Functor<T> {
@@ -85,7 +93,7 @@ jshell> just2.map(x -> x + 3);
 $10 ==> Optional[5]
 ```
 
-And `map` magically applies this function, because `Maybe` is a `Functor`. It specifies how `map` applies to `Just`s and `Nothing`s:
+And `map` magically applies this function, because `Optional` is a `Functor`. It specifies how `map` applies to the empty and non-empty Optional's:
 
 Here’s what is happening behind the scenes when we write `just2.map(x -> x + 3)`:
 
@@ -104,12 +112,12 @@ $14 ==> Optional.empty
 
 _Bill O’Reilly being totally ignorant about the Maybe functor_
 
-Like Morpheus in the Matrix, `map` knows just what to do; you start with `Nothing`, and you end up with `Nothing`! `map` is zen. Now it makes sense why the `Maybe` data type exists. For example, here’s how you work with a database record in a language without `Maybe`:
+Like Morpheus in the Matrix, `map` knows just what to do; you start with `Nothing`, and you end up with `Nothing`! `map` is zen. Now it makes sense why the `Optional` data type exists. For example, here’s how you work with a database record in a language without `Optional`:
 
 ```java
 var post = Post.find_by_id(1);
 if (post != null) {
-  return post.title;
+  return post.getTitle();
 } else {
   return "N/A";
 }
@@ -120,18 +128,16 @@ But in Java with Optional:
 ```java
 return Optional.ofNullable(Post.find_by_id(1))
 .map(Post::getTitle)
-.orElse("N/A)
-
-
+.orElse("N/A")
 ```
 
-If `find_post()` returns a post, we will get the title with `get_post_title`. If it returns `Nothing`, we will return `Nothing`! Pretty neat, huh? 
+If `find_by_id()` returns a post, we will get the title with `getTitle()`. If it returns `Nothing`, we will return `Nothing`! Pretty neat, huh? 
 
 Here’s another example: what happens when you apply a function to a list?
 
 ![](http://adit.io/imgs/functors/fmap_list.png)
 
-In Java it looks like this:
+In Java with Stream API:
 ```java
 jshell> Stream.of(2,4,6).map(add3).toList();
 $15 ==> [5, 7, 9]
