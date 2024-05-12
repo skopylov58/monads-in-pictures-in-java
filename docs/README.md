@@ -87,11 +87,11 @@ sealed interface Maybe<T> {
     static final Nothing<?> INSTANCE = new Nothing<>();
   }
 }
-
 ```
-</details>
-<br/>
 
+</details>
+
+<br/>
 
 In a second we’ll see how function application is different when something is a Just a versus a Nothing. First let’s talk about Functors!
 
