@@ -53,7 +53,7 @@ nothing ==> Optional.empty
 
   <summary>We can implement Maybe in Java by own</summary>
 
-```java  
+```java
 sealed interface Maybe<T> {
 
   default <R> Maybe<R> map(Function<T, R> mapper) {
@@ -89,6 +89,7 @@ sealed interface Maybe<T> {
   }
 }
 ```
+
 </details>
 
 <br>
