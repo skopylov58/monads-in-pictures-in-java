@@ -50,6 +50,7 @@ nothing ==> Optional.empty
 ```
 
 <details>
+
   <summary>We can implement Maybe in Java by own</summary>
 
 ```java  
@@ -88,10 +89,9 @@ sealed interface Maybe<T> {
   }
 }
 ```
-
 </details>
 
-<br/>
+<br>
 
 In a second we’ll see how function application is different when something is a Just a versus a Nothing. First let’s talk about Functors!
 
