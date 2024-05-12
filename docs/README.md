@@ -32,7 +32,7 @@ Now when you apply a function to this value, you’ll get different results **de
 
 ![](http://adit.io/imgs/functors/context.png)
 
-> In Java, instead of Maybe, we have the `Optional<T>` class which
+In Java, instead of Maybe, we have the `Optional<T>` class which
 models the absence of value `T`. The following table maps Haskell definitions to Java classes
 
 | Haskell    | Java              |
@@ -48,6 +48,50 @@ just2 ==> Optional[2]
 jshell> var nothing = Optional.<Integer>empty();
 nothing ==> Optional.empty
 ```
+
+<details>
+  <summary>We can implement Maybe in Java by own</summary>
+
+```java  
+sealed interface Maybe<T> {
+
+  default <R> Maybe<R> map(Function<T, R> mapper) {
+    if (this instanceof Just<T> just) {
+      return Maybe.just(mapper.apply(just.t));
+    } else {
+      return Maybe.nothing();
+    }
+  }
+
+  default <R> Maybe<R> flatMap(Function<T, Maybe<R>> mapper) {
+    if (this instanceof Just<T> just) {
+      return mapper.apply(just.t);
+    } else {
+      return Maybe.nothing();
+    }
+  }
+  
+  static <T> Maybe<T> just(T t) {
+    return new Just<>(t);
+  }
+
+  @SuppressWarnings("unchecked")
+  static <T> Maybe<T> nothing() {
+    return (Maybe<T>) Nothing.INSTANCE;
+  }
+
+  record Just<T>(T t) implements Maybe<T> {
+  }
+
+  final class Nothing<T> implements Maybe<T> {
+    static final Nothing<?> INSTANCE = new Nothing<>();
+  }
+}
+
+```
+</details>
+<br/>
+
 
 In a second we’ll see how function application is different when something is a Just a versus a Nothing. First let’s talk about Functors!
 
@@ -74,7 +118,7 @@ Functor is an Abstract Base Class (typeclass in Haskell). Here’s the definitio
 
 ![](http://adit.io/imgs/functors/functor_def.png)
 
-> In Java it could be a functional interface:
+In Java it could be a functional interface:
 
 ```java
 @FunctionalInterface
@@ -138,7 +182,7 @@ Here’s another example: what happens when you apply a function to a list?
 
 ![](http://adit.io/imgs/functors/fmap_list.png)
 
-> In Java with Stream API:
+In Java with Stream API:
 
 ```java
 jshell> Stream.of(2,4,6).map(add3).toList();
@@ -179,7 +223,7 @@ Yeah. Let that sink in. Applicatives don’t kid around. Applicative knows how t
 
 ![](http://adit.io/imgs/functors/applicative_just.png)
 
-> Java's Optional is not applicative but we can write aplicative function for it:
+Java's Optional is not applicative but we can write aplicative function for it:
 
 ```java
   <T, R> Optional<R> applicative(Optional<Function<T, R>> func, Optional<T> value) {
@@ -203,7 +247,7 @@ Using `<*>` in Haskell can lead to some interesting situations.
 
 ![](http://adit.io/imgs/functors/applicative_list.png)
 
-> In Java we do not have such operator `<*>`, but we can achive the same result in the following way:
+In Java we do not have such operator `<*>`, but we can achive the same result in the following way:
 
 ```java
 jshell> Stream.of(mult2, add3).flatMap(f -> Stream.of(1,2,3).map(f)).toList();
@@ -216,7 +260,7 @@ Here’s something you can do with Applicatives that you can’t do with Functor
 
 And hey! There’s a method called `lift_a2` that does the same thing:
 
-> Java can't handle any number of parameters in aplicative calls, but anyway we can create
+Java can't handle any number of parameters in aplicative calls, but anyway we can create
 `lift_a2` method:
 
 ```java
@@ -224,7 +268,7 @@ And hey! There’s a method called `lift_a2` that does the same thing:
     return optA.flatMap(a -> optB.flatMap(b -> Optional.of(bifunc.apply(a, b))));
   }
 ```
-> Let's test it
+Let's test it
 
 ```
 jshell> lift_a2(just2, Optional.of(3), (x, y) -> x * y);
@@ -338,7 +382,7 @@ Now let’s mosey on over to another example: the `IO` monad:
 
 ![](http://adit.io/imgs/functors/io.png)
 
-> Java does not have IO monad in it's standard library. So for the sake of this translation I will use my own minimal IO monad implementation.
+Java does not have IO monad in it's standard library. So for the sake of this translation I will use my own minimal IO monad implementation.
 
 ```java
 public interface IO<T> {
@@ -350,7 +394,8 @@ public interface IO<T> {
   }
 }
 ```
-> Simply speaking it is just Java's `Supplier<T>` interface with defined `flatMap` method.
+
+Simply speaking it is just Java's `Supplier<T>` interface with defined `flatMap` method.
 
 Specifically three functions. `getLine` takes no arguments and gets user input:
 
@@ -408,7 +453,7 @@ foo = do
     putStrLn contents
 ```
 
-> Java does not have a `do` notation, alas.
+Java does not have a `do` notation, alas.
 
 # Conclusion
 
