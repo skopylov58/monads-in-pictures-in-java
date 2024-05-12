@@ -314,6 +314,11 @@ And if you pass in a `Nothing` it’s even simpler:
 
 ![](http://adit.io/imgs/functors/monad_nothing.png)
 
+```
+jshell> nothing.flatMap(half);
+$53 ==> Optional.empty
+```
+
 You can also chain these calls:
 
 
@@ -323,7 +328,7 @@ You can also chain these calls:
 jshell> Optional.of(20).flatMap(half).flatMap(half).flatMap(half);
 $50 ==> Optional.empty
 ```
-Cool stuff! So now we know that Maybe is a Functor, an Applicative, and a Monad.
+Cool stuff! So now we know that Optional is a Functor and a Monad. Optional is not Applicative itself, but we can provide required applicative functions if needed.
 
 ## IO Monad
 
